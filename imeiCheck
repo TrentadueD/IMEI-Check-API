@@ -44,10 +44,10 @@ def query_service(imei):
     else:
         return {'error': 'Request failed', 'status_code': response.status_code}
 
-input_excel_path = 'C:/Users/PC0/Desktop/imei_data_input.xlsx'  # Path for the input Excel file
-output_excel_path = 'C:/Users/PC0/Desktop/imei_data_output.xlsx'  # Path for the output Excel file
+input_excel_path = 'imei_data_input.xlsx'  # Path for the input Excel file
+output_excel_path = 'imei_data_output.xlsx'  # Path for the output Excel file
 
-print("Looking for input excel file at {input_excel_path}")
+print("Looking for input excel file at " + input_excel_path)
 imei_list = extract_imei_data(input_excel_path)  # Get the list of IMEIs from the input file
 
 # Loop through the list of IMEIs and query the service for each one
