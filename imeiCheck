@@ -1,0 +1,65 @@
+import requests
+import pandas as pd
+import os
+import openpyxl
+
+# Replace these with your API Key
+API_KEY = ''
+
+# Function to extract IMEI data from an Excel file
+def extract_imei_data(excel_path):
+    workbook = openpyxl.load_workbook(excel_path)
+    sheet = workbook.active
+    imei_column_index = None
+    for col in sheet[1]:
+        if col.value == 'IMEI':
+            imei_column_index = col.column
+            break
+    if imei_column_index is None:
+        print("Error: 'IMEI' column not found.")
+        workbook.close()
+        return []
+    imei_data = []
+    for row in range(2, sheet.max_row + 1):
+        cell_value = sheet.cell(row=row, column=imei_column_index).value
+        if cell_value is not None:
+            imei_str = str(cell_value)
+            # Check if IMEI has less than 15 characters and prepend a '0' if it does
+            if len(imei_str) < 15:
+                imei_str = '0' + imei_str
+            imei_data.append(imei_str)
+    workbook.close()
+    return imei_data
+
+# Function to make a request to the API
+def query_service(imei):
+    url = 'https://dash.imei.info/api/check/4/'
+    params = {
+        'API_KEY': API_KEY,
+        'imei': imei
+    }
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return {'error': 'Request failed', 'status_code': response.status_code}
+
+input_excel_path = 'C:/Users/PC0/Desktop/imei_data_input.xlsx'  # Path for the input Excel file
+output_excel_path = 'C:/Users/PC0/Desktop/imei_data_output.xlsx'  # Path for the output Excel file
+
+print("Looking for input excel file at {input_excel_path}")
+imei_list = extract_imei_data(input_excel_path)  # Get the list of IMEIs from the input file
+
+# Loop through the list of IMEIs and query the service for each one
+for IMEI in imei_list:
+    result = query_service(IMEI)
+    # Process and prepare 'result' as needed, then convert it to a DataFrame
+    df = pd.DataFrame([result])  # Convert the result to a DataFrame
+    if os.path.exists(output_excel_path):
+        existing_df = pd.read_excel(output_excel_path)
+        updated_df = pd.concat([existing_df, df], ignore_index=True)
+    else:
+        updated_df = df
+    updated_df.to_excel(output_excel_path, index=False)  # Save the updated data back to the output Excel file
+
+print(f'Results written to {output_excel_path}')
