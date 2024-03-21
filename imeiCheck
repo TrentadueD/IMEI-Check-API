@@ -1,10 +1,10 @@
 import requests
 import pandas as pd
-import os
 import openpyxl
+from datetime import datetime
 
 # Replace these with your API Key
-API_KEY = ''
+API_KEY = '73b196eb-bb14-4aaf-b4fa-d364865d5de5'
 
 # Function to extract IMEI data from an Excel file
 def extract_imei_data(excel_path):
@@ -45,21 +45,24 @@ def query_service(imei):
         return {'error': 'Request failed', 'status_code': response.status_code}
 
 input_excel_path = 'imei_data_input.xlsx'  # Path for the input Excel file
-output_excel_path = 'imei_data_output.xlsx'  # Path for the output Excel file
+
+# Generate a unique output path for each run using the current datetime
+output_excel_path = f'imei_data_output_{datetime.now().strftime("%Y%m%d%H%M%S")}.xlsx'
 
 print("Looking for input excel file at " + input_excel_path)
 imei_list = extract_imei_data(input_excel_path)  # Get the list of IMEIs from the input file
+
+# Create initial allResults array
+allResults = []
 
 # Loop through the list of IMEIs and query the service for each one
 for IMEI in imei_list:
     result = query_service(IMEI)
     # Process and prepare 'result' as needed, then convert it to a DataFrame
-    df = pd.DataFrame([result])  # Convert the result to a DataFrame
-    if os.path.exists(output_excel_path):
-        existing_df = pd.read_excel(output_excel_path)
-        updated_df = pd.concat([existing_df, df], ignore_index=True)
-    else:
-        updated_df = df
-    updated_df.to_excel(output_excel_path, index=False)  # Save the updated data back to the output Excel file
+    allResults.append(result)
 
-print(f'Results written to {output_excel_path}')
+df = pd.DataFrame(allResults)  # Convert the result to a DataFrame
+
+df.to_excel(output_excel_path, index=False)  # Save the updated data back to the output Excel file
+
+print(f'Results written to ' + output_excel_path)
