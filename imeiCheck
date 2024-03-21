@@ -4,7 +4,7 @@ import openpyxl
 from datetime import datetime
 
 # Replace these with your API Key
-API_KEY = '73b196eb-bb14-4aaf-b4fa-d364865d5de5'
+API_KEY = ''
 
 # Function to extract IMEI data from an Excel file
 def extract_imei_data(excel_path):
@@ -58,7 +58,17 @@ allResults = []
 # Loop through the list of IMEIs and query the service for each one
 for IMEI in imei_list:
     result = query_service(IMEI)
-    # Process and prepare 'result' as needed, then convert it to a DataFrame
+    
+    # Check if a photo exists, if so add the domain, if not, change to Null
+    if str(result['medium_photo']) == 'None':
+        result['medium_photo'] = 'Null'
+    else:
+        result['medium_photo'] = 'https://www.imei.info' + str(result['medium_photo'])
+    
+    # Remove all bandwith information for 5G, take first dict entry and change to Boolean
+    first_key, first_value = next(iter(result['_5g_data'].items()))
+    result['_5g_data'] = first_value    
+
     allResults.append(result)
 
 df = pd.DataFrame(allResults)  # Convert the result to a DataFrame
