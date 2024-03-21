@@ -11,6 +11,8 @@ def extract_imei_data(excel_path):
     workbook = openpyxl.load_workbook(excel_path)
     sheet = workbook.active
     imei_column_index = None
+
+    # Cycle through columns until it finds one with IMEI header
     for col in sheet[1]:
         if col.value == 'IMEI':
             imei_column_index = col.column
@@ -20,6 +22,8 @@ def extract_imei_data(excel_path):
         workbook.close()
         return []
     imei_data = []
+
+    # Cycle through all IMEIs listed in Excel
     for row in range(2, sheet.max_row + 1):
         cell_value = sheet.cell(row=row, column=imei_column_index).value
         if cell_value is not None:
@@ -42,7 +46,7 @@ def query_service(imei):
     if response.status_code == 200:
         return response.json()
     else:
-        return {'error': 'Request failed', 'status_code': response.status_code}
+        return {'error': 'Request failed', 'status_code': response.status_code, 'detail': response.reason}
 
 input_excel_path = 'imei_data_input.xlsx'  # Path for the input Excel file
 
@@ -71,8 +75,8 @@ for IMEI in imei_list:
 
     allResults.append(result)
 
-df = pd.DataFrame(allResults)  # Convert the result to a DataFrame
+df = pd.DataFrame(allResults) 
 
-df.to_excel(output_excel_path, index=False)  # Save the updated data back to the output Excel file
+df.to_excel(output_excel_path, index=False)
 
 print(f'Results written to ' + output_excel_path)
